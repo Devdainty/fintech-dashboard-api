@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Verifying Payment... | Fintech</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <div class="container" style="text-align: center">
+      <h2>Payment Verification</h2>
+      <div id="loadingSpinner" style="margin: 25px 0">
+        <p style="color: #64748b; font-size: 15px">
+          Confirming your transaction with Paystack, please wait...
+        </p>
+      </div>
+      <div id="verifyAlert" class="alert"></div>
+      <a
+        id="dashboardLink"
+        href="/dashboard.html"
+        class="btn-primary"
+        style="
+          display: none;
+          text-decoration: none;
+          display: inline-block;
+          margin-top: 15px;
+          padding: 10px 20px;
+        "
+      >
+        Return to Dashboard
+      </a>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/callback.js"></script>
+  </body>
+</html>

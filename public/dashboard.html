@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard | Fintech</title>
+    <link rel="stylesheet" href="./css/style.css" />
+  </head>
+  <body>
+    <!-- Top Navigation Bar -->
+    <div class="navbar">
+      <h2>Fintech Dashboard</h2>
+      <div class="nav-links">
+        <a href="/transaction.html" class="btn-secondary">+ New Transaction</a>
+        <button id="logoutBtn" class="btn-danger">Logout</button>
+      </div>
+    </div>
+
+    <!-- Main Dashboard Container -->
+    <div class="container wide-container">
+      <div
+        style="
+          display: flex;
+          align-items: center;
+          gap: 20px;
+          margin-bottom: 25px;
+          padding: 20px;
+          background: #ffffff;
+          border-radius: 12px;
+          border: 1px solid #e2e8f0;
+          flex-wrap: wrap;
+        "
+      >
+        <!-- Profile Avatar Display -->
+        <img
+          id="avatarImg"
+          src="https://via.placeholder.com/120/cbd5e1/475569?text=User"
+          alt="Profile Avatar"
+          style="
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #2563eb;
+          "
+        />
+
+        <div style="flex-grow: 1">
+          <h3 id="welcomeMsg" style="text-align: left; margin-bottom: 4px">
+            Welcome
+          </h3>
+          <p
+            id="userEmail"
+            style="color: #64748b; font-size: 14px; margin-bottom: 12px"
+          ></p>
+
+          <!-- Avatar Upload Form -->
+          <form
+            id="avatarForm"
+            style="
+              display: flex;
+              gap: 10px;
+              align-items: center;
+              flex-wrap: wrap;
+            "
+          >
+            <input
+              type="file"
+              id="profileFileInput"
+              accept="image/jpeg,image/png,image/webp"
+              required
+              style="font-size: 13px; max-width: 220px"
+            />
+            <button
+              type="submit"
+              class="btn-primary"
+              id="uploadBtn"
+              style="width: auto; padding: 8px 16px; font-size: 13px"
+            >
+              Upload Picture
+            </button>
+          </form>
+
+          <div
+            id="uploadFeedback"
+            class="alert"
+            style="
+              margin-top: 10px;
+              margin-bottom: 0;
+              padding: 8px 12px;
+              font-size: 13px;
+            "
+          ></div>
+        </div>
+      </div>
+
+      <div
+        style="
+          background: #ffffff;
+          padding: 20px;
+          border-radius: 12px;
+          border: 1px solid #e2e8f0;
+          margin-bottom: 25px;
+        "
+      >
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
+          "
+        >
+          <h3 style="margin: 0; text-align: left">
+            Identity Verification (KYC)
+          </h3>
+
+          <!-- Dynamic Verification Status Badge -->
+          <span
+            id="verificationStatusBadge"
+            style="
+              padding: 6px 14px;
+              border-radius: 20px;
+              font-size: 13px;
+              font-weight: bold;
+              background: #f1f5f9;
+              color: #475569;
+            "
+          >
+            Not Submitted
+          </span>
+        </div>
+
+        <p style="font-size: 13px; color: #64748b; margin-bottom: 15px">
+          Please upload a short selfie verification video. Limits:
+          <strong>maximum 25MB</strong> and <strong>under 60 seconds</strong>
+          (MP4, WebM, or MOV formats only).
+        </p>
+
+        <!-- Video Upload Form -->
+        <form
+          id="videoForm"
+          style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap"
+        >
+          <input
+            type="file"
+            id="videoFileInput"
+            accept="video/mp4,video/webm,video/quicktime"
+            required
+            style="font-size: 13px; max-width: 240px"
+          />
+          <button
+            type="submit"
+            class="btn-primary"
+            id="videoSubmitBtn"
+            style="width: auto; padding: 8px 16px; font-size: 13px"
+          >
+            Submit Video
+          </button>
+        </form>
+
+        <div
+          id="videoFeedback"
+          class="alert"
+          style="
+            margin-top: 12px;
+            margin-bottom: 0;
+            padding: 8px 12px;
+            font-size: 13px;
+          "
+        ></div>
+      </div>
+
+      <div class="balance-card">
+        <h4>Official Account Balance</h4>
+        <div class="amount" id="balanceDisplay">₦0.00</div>
+      </div>
+
+      <div
+        style="
+          background: #ffffff;
+          padding: 20px;
+          border-radius: 12px;
+          border: 1px solid #e2e8f0;
+          margin-bottom: 25px;
+        "
+      >
+        <h3 style="margin: 0 0 8px 0; text-align: left">Deposit Funds</h3>
+        <p style="font-size: 13px; color: #64748b; margin-bottom: 15px">
+          Instantly fund your wallet using Debit Card, Bank Transfer, or USSD
+          via Paystack.
+        </p>
+
+        <!-- Paystack Deposit Form -->
+        <form
+          id="depositForm"
+          style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap"
+        >
+          <input
+            type="number"
+            id="depositAmount"
+            min="100"
+            placeholder="Amount (min ₦100)"
+            required
+            style="max-width: 200px"
+          />
+          <button
+            type="submit"
+            id="depositBtn"
+            class="btn-primary"
+            style="width: auto; padding: 10px 20px"
+          >
+            Pay with Paystack
+          </button>
+        </form>
+
+        <div
+          id="depositAlert"
+          class="alert"
+          style="margin-top: 12px; margin-bottom: 0"
+        ></div>
+      </div>
+
+      <h3>Recent Transactions</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Amount</th>
+            <th>Balance After</th>
+          </tr>
+        </thead>
+        <tbody id="transactionList">
+          <tr>
+            <td colspan="4" style="text-align: center">
+              Loading transactions...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Frontend Integration Scripts -->
+    <script src="/js/api.js"></script>
+    <script src="/js/dashboard.js"></script>
+    <script src="/js/profile.js"></script>
+    <script src="/js/video.js"></script>
+  </body>
+</html>
