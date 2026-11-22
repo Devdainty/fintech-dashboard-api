@@ -1,9 +1,15 @@
 const { Resend } = require("resend");
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 const sendEmail = async (options) => {
+  if (!process.env.RESEND_API_KEY) {
+    console.warn(
+      "⚠️ Warning: RESEND_API_KEY is not set in environment variables. Email not sent.",
+    );
+    return;
+  }
+
   try {
+    const resend = new Resend(process.env.RESEND_API_KEY);
     const fromAddress = process.env.EMAIL_FROM || "onboarding@resend.dev";
 
     const data = await resend.emails.send({
@@ -21,7 +27,10 @@ const sendEmail = async (options) => {
       `,
     });
 
-    console.log("Resend Email delivered successfully! ID:", data.id);
+    console.log(
+      "Resend Email delivered successfully! ID:",
+      data?.id || data?.data?.id,
+    );
     return data;
   } catch (error) {
     console.error("Resend email delivery failed:", error.message);
