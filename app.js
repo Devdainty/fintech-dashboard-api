@@ -5,11 +5,26 @@ const cors = require("cors");
 const rateLimit = require("express-rate-limit");
 const xss = require("xss-clean");
 const path = require("path");
+const Sentry = require("@sentry/node");
 
-// Loads environment variables
+//Load environment variables
 dotenv.config();
 
+if (process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    environment: process.env.NODE_ENV || "development",
+    tracesSampleRate: 1.0,
+  });
+}
+
 const app = express();
+
+const requestLogger = require("./src/middleware/requestLogger");
+const performanceMonitor = require("./src/middleware/performanceMonitor");
+
+app.use(requestLogger);
+app.use(performanceMonitor);
 
 // CORS Configuration
 const trustedOrigins = [
@@ -61,6 +76,7 @@ const limiter = rateLimit({
 });
 app.use("/api", limiter);
 
+//Body Parsers & Sanitization
 app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 
@@ -77,6 +93,7 @@ app.use((req, res, next) => {
 });
 app.use(xss());
 
+//Root & Health Check Routes
 app.get("/", (req, res) => {
   res.redirect("/login.html");
 });
@@ -98,6 +115,11 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+app.get("/debug-error", (req, res) => {
+  throw new Error("Test Sentry Error Triggered!");
+});
+
+//Application Routes
 const authRoutes = require("./src/routes/authRoutes");
 const dashboardRoutes = require("./src/routes/dashboardRoutes");
 const transactionRoutes = require("./src/routes/transactionRoutes");

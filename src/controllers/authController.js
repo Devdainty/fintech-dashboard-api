@@ -1,6 +1,8 @@
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const sendEmail = require("../utils/sendEmail");
+const logger = require("../config/logger");
+const { trackEvent } = require("../services/analyticsService");
 
 // Generates JWT with user ID and Role
 const generateToken = (id, role) => {
@@ -9,7 +11,7 @@ const generateToken = (id, role) => {
   });
 };
 
-// REGISTER USER
+// REGISTERS USER
 exports.register = async (req, res) => {
   try {
     const { username, email, password, role } = req.body;
@@ -17,6 +19,10 @@ exports.register = async (req, res) => {
     // Check if user already exists
     const userExists = await User.findOne({ $or: [{ email }, { username }] });
     if (userExists) {
+      logger.warn(
+        { email, username },
+        "Registration attempted with existing credentials",
+      );
       return res
         .status(400)
         .json({ success: false, message: "User already exists" });
@@ -36,22 +42,30 @@ exports.register = async (req, res) => {
       otpExpires,
     });
 
+    logger.info(
+      { userId: user._id, username: user.username, email: user.email },
+      "New user registered successfully",
+    );
+
+    await trackEvent("USER_REGISTERED", user._id);
+
     console.log("\n==================================================");
     console.log(`📧 REGISTRATION FOR: ${user.email}`);
     console.log(`🔑 DEV OTP CODE IS  : [ ${otp} ]`);
     console.log("==================================================\n");
 
-    // Sends OTP via Email (if email fails or you are offline, app won't crash)
+    // Sends OTP via Email
     try {
       await sendEmail({
         email: user.email,
         subject: "Your Fintech Verification OTP",
         message: `Welcome to Fintech Dashboard! Your verification code is: ${otp}. It expires in 10 minutes.`,
       });
-      console.log(`✅ Real email sent successfully to ${user.email}`);
+      logger.info({ email: user.email }, "Verification OTP email dispatched");
     } catch (emailErr) {
-      console.log(
-        "⚠️ Email could not be sent (DNS/Offline). Use the terminal OTP printed above!",
+      logger.warn(
+        { err: emailErr.message, email: user.email },
+        "Email delivery failed. Fallback to terminal OTP.",
       );
     }
 
@@ -71,6 +85,7 @@ exports.register = async (req, res) => {
       },
     });
   } catch (error) {
+    logger.error({ err: error.message }, "Error during registration");
     res.status(500).json({ success: false, error: error.message });
   }
 };
@@ -82,6 +97,7 @@ exports.verifyOTP = async (req, res) => {
 
     const user = await User.findOne({ email });
     if (!user) {
+      logger.warn({ email }, "OTP verification failed: User not found");
       return res
         .status(404)
         .json({ success: false, message: "User not found" });
@@ -89,6 +105,10 @@ exports.verifyOTP = async (req, res) => {
 
     // Check if OTP matches and hasn't expired
     if (user.otp !== otp || user.otpExpires < Date.now()) {
+      logger.warn(
+        { email, userId: user._id },
+        "OTP verification failed: Invalid or expired OTP",
+      );
       return res
         .status(400)
         .json({ success: false, message: "Invalid or expired OTP" });
@@ -100,7 +120,14 @@ exports.verifyOTP = async (req, res) => {
     user.otpExpires = undefined;
     await user.save();
 
-    console.log(`🎉 User [${user.email}] verified successfully!`);
+    // Logs verification success
+    logger.info(
+      { userId: user._id, email: user.email },
+      "User email verified via OTP",
+    );
+
+    // Records analytics event
+    await trackEvent("OTP_VERIFIED", user._id);
 
     res.status(200).json({
       success: true,
@@ -108,6 +135,10 @@ exports.verifyOTP = async (req, res) => {
         "Email successfully verified! You can now use all dashboard features.",
     });
   } catch (error) {
+    logger.error(
+      { err: error.message, email: req.body?.email },
+      "Error verifying OTP",
+    );
     res.status(500).json({ success: false, error: error.message });
   }
 };
@@ -118,6 +149,7 @@ exports.login = async (req, res) => {
     const { username, password } = req.body;
 
     if (!username || !password) {
+      logger.warn("Login attempt missing username or password");
       return res.status(400).json({
         success: false,
         message: "Please provide username and password",
@@ -126,6 +158,7 @@ exports.login = async (req, res) => {
 
     const user = await User.findOne({ username });
     if (!user) {
+      logger.warn({ username }, "Failed login attempt: Username not found");
       return res
         .status(401)
         .json({ success: false, message: "Invalid credentials" });
@@ -133,10 +166,23 @@ exports.login = async (req, res) => {
 
     const isMatch = await user.matchPassword(password);
     if (!isMatch) {
+      logger.warn(
+        { username, userId: user._id },
+        "Failed login attempt: Incorrect password",
+      );
       return res
         .status(401)
         .json({ success: false, message: "Invalid credentials" });
     }
+
+    // Logs successful login
+    logger.info(
+      { userId: user._id, username: user.username, role: user.role },
+      "User logged in successfully",
+    );
+
+    // Records analytics event
+    await trackEvent("USER_LOGIN", user._id);
 
     const token = generateToken(user._id, user.role);
 
@@ -153,6 +199,10 @@ exports.login = async (req, res) => {
       },
     });
   } catch (error) {
+    logger.error(
+      { err: error.message, username: req.body?.username },
+      "Error during login",
+    );
     res.status(500).json({ success: false, error: error.message });
   }
 };
